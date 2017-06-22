@@ -6,9 +6,10 @@ Also produces a txt file per fasta file: locus_name, contig_name, first position
 g++ getIntergenic.cpp -std=c++17 -O3 -o getIntergenic  
   
 ## Exemple:  
-./getIntergenic contig_Hmel201012_ama.fasta Hmel2.gff  
+./getIntergenic contig_Hmel201012_ama.fasta Hmel2.gff 10000  
 **arg1:** fasta file  
 **arg2:** gff file  
+**arg2:** minimum size in nucleotides of the intergenic for being printed in a fasta file  
   
 The fasta file is an alignement of one contig for different individuals.  
 The gff file can be the gff produced for the whole genome.  

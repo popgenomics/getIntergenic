@@ -16,7 +16,7 @@ void initialize(std::vector <std::string> & indSequences_tmp, const std::vector 
 void treatLine(const std::string & line, const std::vector <std::string> & indSequences, const std::vector <std::string> & indNames, int & testCDS, int & locus_ID, std::vector <std::string> & indSequences_tmp, const std::string contigName);
 void checkCommandLine(const int argc);
 void getCodingPositions(const std::string & line, std::vector <size_t> & start, std::vector <size_t> & end);
-void writeLoci( const std::vector <std::string> & indSequences, const std::vector <std::string> & indNames, std::vector <size_t> & start, const std::vector <size_t> & end, const std::string contigName );
+void writeLoci( const std::vector <std::string> & indSequences, const std::vector <std::string> & indNames, std::vector <size_t> & start, const std::vector <size_t> & end, const std::string contigName, const int minLength );
 
 int main(int argc, char* argv[]){
 
@@ -24,6 +24,7 @@ int main(int argc, char* argv[]){
 
 	const std::string fastaFile(argv[1]);
 	const std::string gffFile(argv[2]);
+	const int minLength(std::stoi(argv[3]));
 
 	size_t i(0);
 	int goodContig(0);
@@ -87,7 +88,7 @@ int main(int argc, char* argv[]){
 		}
 
 		infileGFF.close();
-		writeLoci( indSequences, indNames, start, end, contigName );
+		writeLoci( indSequences, indNames, start, end, contigName, minLength );
 
 	}else{
 		std::cout << "ERROR: the file " << gffFile << " was not found" << std::endl;
@@ -258,9 +259,10 @@ void getCodingPositions(const std::string & line, std::vector <size_t> & start, 
 }
 
 
-void writeLoci( const std::vector <std::string> & indSequences, const std::vector <std::string> & indNames, std::vector <size_t> & start, const std::vector <size_t> & end, const std::string contigName ){
+void writeLoci( const std::vector <std::string> & indSequences, const std::vector <std::string> & indNames, std::vector <size_t> & start, const std::vector <size_t> & end, const std::string contigName, const int minLength ){
 	size_t i(0);
 	size_t j(0);
+	size_t cnt(0);
 	std::string outputName_fasta;
 	std::string outputName_txt;
 
@@ -291,28 +293,30 @@ void writeLoci( const std::vector <std::string> & indSequences, const std::vecto
 		start.push_back( indSequences[0].size() );
 
 		for( i=0; i<start.size(); ++i ){
-			std::ostringstream oss;
-			oss << "nonCoding_" << contigName << "_" << i << ".fasta";
-			outputName_fasta = oss.str();
-			std::ofstream fastaFile( outputName_fasta.c_str(), std::ios::out );
+			if( (start[i]-end[i]) > minLength && start[i]>end[i] ){
+				std::ostringstream oss;
+				oss << "nonCoding_" << contigName << "_" << cnt << ".fasta";
+				outputName_fasta = oss.str();
+				std::ofstream fastaFile( outputName_fasta.c_str(), std::ios::out );
 
-			std::ostringstream oss2;
-			oss2 << "nonCoding_" << contigName << "_" << i << ".txt";
-			outputName_txt = oss2.str();
-			std::ofstream txtFile( outputName_txt.c_str(), std::ios::out );
+				std::ostringstream oss2;
+				oss2 << "nonCoding_" << contigName << "_" << cnt << ".txt";
+				outputName_txt = oss2.str();
+				std::ofstream txtFile( outputName_txt.c_str(), std::ios::out );
 			
-			for( j=0; j<indNames.size(); ++j ){
-				if( j==0 ){
-					txtFile << contigName << "_" << i  << '\t' << contigName << '\t' << end[i] << '\t' << start[i]-1 << std::endl;
-					txtFile.close();
-					std::cout << outputName_fasta << '\t' << end[i] << "-" << start[i]-1 << std::endl;
+				for( j=0; j<indNames.size(); ++j ){
+					if( j==0 ){
+						txtFile << contigName << "_" << cnt  << '\t' << contigName << '\t' << end[i] << '\t' << start[i]-1 << std::endl;
+						txtFile.close();
+						std::cout << outputName_fasta << '\t' << end[i] << "-" << start[i]-1 << std::endl;
+					}
+
+					fastaFile << indNames[j] << std::endl << indSequences[j].substr(end[i], start[i]-end[i]) << std::endl;
 				}
 
-				fastaFile << indNames[j] << std::endl << indSequences[j].substr(end[i], start[i]-end[i]) << std::endl;
+				fastaFile.close();
+				++cnt;
 			}
-
-			fastaFile.close();
-
 		}
 		return;
 	}
@@ -320,13 +324,14 @@ void writeLoci( const std::vector <std::string> & indSequences, const std::vecto
 
 
 void checkCommandLine(const int argc){
-	if( argc != 3 ){
+	if( argc != 4 ){
 		std::cout << std::endl << " getIntergenic produces intergenic sequences from a gff and a fasta file." << std::endl;
 		std::cout << " in the current version: the original fasta file is only for one contig, but gff can contains informations for all contigs" << std::endl;
-		std::cout << " 2 arguments are needed:" << std::endl;
+		std::cout << " 3 arguments are needed:" << std::endl;
 		std::cout << "\tname of the fasta file (string)." << std::endl;
 		std::cout << "\tname of the gff file (string)." << std::endl;
-		std::cout << "\t\t./getIntergenic contig_Hmel201012_ama.fasta Hmel2.gff" << std::endl << std::endl;
+		std::cout << "\tminimum length of the intergenic region to print (integer)." << std::endl;
+		std::cout << "\t\t./getIntergenic contig_Hmel201012_ama.fasta Hmel2.gff 10000" << std::endl << std::endl;
 		std::cout << "\tcamille.roux.1983@gmail.com (22/06/2017)" << std::endl << std::endl;
 		exit(EXIT_FAILURE);
 	}
