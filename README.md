@@ -1,4 +1,4 @@
-# getIntergemic  
+# getIntergenic  
 Produces one fasta file for each noncoding loci (inter genic regions) found in the corresponding gff file.  
 Also produces a txt file per fasta file: locus_name, contig_name, first position of the non-coding region (0-based), last position of non-coding region (0-based)  
   
