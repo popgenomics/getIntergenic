@@ -1,4 +1,4 @@
-# getCDS  
+# getIntergemic  
 Produces one fasta file for each noncoding loci (inter genic regions) found in the corresponding gff file.  
 Also produces a txt file per fasta file: locus_name, contig_name, first position of the non-coding region (0-based), last position of non-coding region (0-based)  
   
@@ -16,5 +16,5 @@ The gff file can be the gff produced for the whole genome.
 ## Precaution  
 The produced **fasta files** are written in 'std::ios::out mode'.  
 The produced **txt files** are written in 'std::ios::out mode'.  
-Running multiple times getCDS with the same fasta input file will overwrite the written fasta output files AND the correspond txt output files  
+Running multiple times getIntergenic with the same fasta input file will overwrite the written fasta output files AND the correspond txt output files  
 
